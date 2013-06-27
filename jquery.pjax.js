@@ -238,6 +238,9 @@ function pjax(options) {
 
     var container = extractContainer(data, xhr, options)
 
+    if(container.version)
+      latestVersion = container.version
+
     // If there is a layout version mismatch, hard load the new url
     if (currentVersion && latestVersion && currentVersion !== latestVersion) {
       locationReplace(container.url)
@@ -617,6 +620,9 @@ function extractContainer(data, xhr, options) {
   if ($body.length === 0)
     return obj
 
+  // Check version in content
+  obj.version = findVersion($head)
+
   // If there's a <title> tag in the header, use it as
   // the page's title.
   obj.title = findAll($head, 'title').last().text()
@@ -745,8 +751,9 @@ function cachePop(direction, id, value) {
 // Public: Find version identifier for the initial page load.
 //
 // Returns String version or undefined.
-function findVersion() {
-  return $('meta').filter(function() {
+function findVersion($head) {
+  var $meta = $head ? findAll($head, 'meta') : $('meta')
+  return $meta.filter(function() {
     var name = $(this).attr('http-equiv')
     return name && name.toUpperCase() === 'X-PJAX-VERSION'
   }).attr('content')
